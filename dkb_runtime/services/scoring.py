@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -16,8 +16,8 @@ class DimensionScoreResult:
     explanation: str
 
 
-async def score_directive(
-    db: AsyncSession, directive_id: UUID, model_id: UUID
+def score_directive(
+    db: Session, directive_id: UUID, model_id: UUID
 ) -> list[DimensionScoreResult]:
     """Score a canonical directive across all dimensions.
 

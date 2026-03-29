@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -16,8 +16,8 @@ class RawDirectiveResult:
     evidence_count: int
 
 
-async def extract_directives(
-    db: AsyncSession, snapshot_id: UUID
+def extract_directives(
+    db: Session, snapshot_id: UUID
 ) -> list[RawDirectiveResult]:
     """Walk a snapshot's filesystem and extract raw directives + evidence.
 

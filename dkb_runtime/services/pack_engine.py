@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -16,7 +16,7 @@ class PackBuildResult:
     status: str
 
 
-async def build_pack(db: AsyncSession, pack_id: UUID) -> PackBuildResult:
+def build_pack(db: Session, pack_id: UUID) -> PackBuildResult:
     """Build a curated pack based on its selection policy.
 
     Steps:

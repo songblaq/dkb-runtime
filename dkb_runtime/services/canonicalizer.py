@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -15,8 +15,8 @@ class CanonicalResult:
     mapped_raw_count: int
 
 
-async def canonicalize(
-    db: AsyncSession, raw_directive_ids: list[UUID]
+def canonicalize(
+    db: Session, raw_directive_ids: list[UUID]
 ) -> list[CanonicalResult]:
     """Normalize raw directives into canonical directives.
 

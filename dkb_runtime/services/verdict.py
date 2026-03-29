@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -19,8 +19,8 @@ class VerdictResult:
     verdict_reason: str
 
 
-async def evaluate_directive(
-    db: AsyncSession, directive_id: UUID
+def evaluate_directive(
+    db: Session, directive_id: UUID
 ) -> VerdictResult:
     """Generate a verdict for a canonical directive.
 

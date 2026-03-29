@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 @dataclass
@@ -16,8 +16,8 @@ class ExportResult:
     file_count: int
 
 
-async def export_claude_code(
-    db: AsyncSession, pack_id: UUID, output_dir: Path
+def export_claude_code(
+    db: Session, pack_id: UUID, output_dir: Path
 ) -> ExportResult:
     """Export a pack as Claude Code plugin structure.
 
@@ -30,8 +30,8 @@ async def export_claude_code(
     raise NotImplementedError("exporter.export_claude_code")
 
 
-async def export_skill_md(
-    db: AsyncSession, pack_id: UUID, output_dir: Path
+def export_skill_md(
+    db: Session, pack_id: UUID, output_dir: Path
 ) -> ExportResult:
     """Export a pack as SKILL.md standard format.
 
@@ -42,8 +42,8 @@ async def export_skill_md(
     raise NotImplementedError("exporter.export_skill_md")
 
 
-async def export_snapshot(
-    db: AsyncSession, pack_id: UUID, output_dir: Path
+def export_snapshot(
+    db: Session, pack_id: UUID, output_dir: Path
 ) -> ExportResult:
     """Export a pack as a versioned release snapshot."""
     raise NotImplementedError("exporter.export_snapshot")

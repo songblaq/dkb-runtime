@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Text, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Computed
 
 from dkb_runtime.models.base import Base, jsonb_default
+
+if TYPE_CHECKING:
+    from dkb_runtime.models.directive import RawToCanonicalMap
 
 
 class Source(Base):
