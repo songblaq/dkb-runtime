@@ -1,0 +1,51 @@
+{
+  "packs": [
+    {
+      "pack_key": "safe-starter",
+      "pack_name": "Safe Starter Pack",
+      "pack_type": "starter",
+      "goal": "초보자를 위한 안전한 시작 세트",
+      "selection_policy": {
+        "trust_state": [
+          "verified"
+        ],
+        "legal_state": [
+          "clear",
+          "custom"
+        ],
+        "exclude_recommendation_state": [
+          "excluded",
+          "deprecated"
+        ],
+        "score_min": {
+          "clarity.description_clarity": 0.6,
+          "clarity.naming_clarity": 0.6
+        }
+      }
+    },
+    {
+      "pack_key": "review-focused",
+      "pack_name": "Review Focused Pack",
+      "pack_type": "role",
+      "goal": "review 역할에 특화된 세트",
+      "selection_policy": {
+        "score_min": {
+          "function.review": 0.7,
+          "form.workflowness": 0.5
+        }
+      }
+    },
+    {
+      "pack_key": "planning-workflow",
+      "pack_name": "Planning Workflow Pack",
+      "pack_type": "role",
+      "goal": "planning + workflow 성향 위주 세트",
+      "selection_policy": {
+        "score_min": {
+          "function.planning": 0.7,
+          "form.workflowness": 0.6
+        }
+      }
+    }
+  ]
+}

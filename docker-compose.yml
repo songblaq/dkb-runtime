@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: dkb-runtime-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dkb}
+      POSTGRES_USER: ${POSTGRES_USER:-dkb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dkb}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dkb-runtime-api
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head &&
+             python scripts/load_seed.py &&
+             uvicorn dkb_runtime.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  postgres_data:

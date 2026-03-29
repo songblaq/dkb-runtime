@@ -1,0 +1,84 @@
+{
+  "policy_key": "verdict-policy-v0-1",
+  "version": "0.1.0",
+  "provenance_states": [
+    "official",
+    "vendor",
+    "community",
+    "individual",
+    "unknown"
+  ],
+  "trust_states": [
+    "unknown",
+    "reviewing",
+    "verified",
+    "caution",
+    "blocked"
+  ],
+  "legal_states": [
+    "clear",
+    "custom",
+    "no_license",
+    "removed",
+    "restricted"
+  ],
+  "lifecycle_states": [
+    "active",
+    "stale",
+    "dormant",
+    "archived",
+    "disappeared"
+  ],
+  "recommendation_states": [
+    "candidate",
+    "preferred",
+    "merged",
+    "excluded",
+    "deprecated"
+  ],
+  "defaults": {
+    "provenance_state": "unknown",
+    "trust_state": "unknown",
+    "legal_state": "custom",
+    "lifecycle_state": "active",
+    "recommendation_state": "candidate"
+  },
+  "example_rules": [
+    {
+      "name": "no_license_default_caution",
+      "if": {
+        "legal_state": "no_license"
+      },
+      "then": {
+        "trust_state": "caution",
+        "recommendation_state": "excluded"
+      }
+    },
+    {
+      "name": "verified_clear_active_preferred_candidate",
+      "if": {
+        "trust_state": "verified",
+        "legal_state": [
+          "clear",
+          "custom"
+        ],
+        "lifecycle_state": "active"
+      },
+      "then": {
+        "recommendation_state": "preferred"
+      }
+    },
+    {
+      "name": "archived_demote",
+      "if": {
+        "lifecycle_state": [
+          "archived",
+          "disappeared"
+        ]
+      },
+      "then": {
+        "recommendation_state": "deprecated"
+      }
+    }
+  ]
+}
