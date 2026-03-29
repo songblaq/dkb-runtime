@@ -18,9 +18,7 @@ def test_end_to_end_local_collect_extract_canonicalize_score_verdict_pack_export
 ):
     tree = tmp_path / "repo"
     shutil.copytree(fixtures_dir / "sample_repo", tree)
-    (tree / "SKILL.md").write_text(
-        "# Integration Skill\n\n```bash\necho ok\n```\n", encoding="utf-8"
-    )
+    (tree / "SKILL.md").write_text("# Integration Skill\n\n```bash\necho ok\n```\n", encoding="utf-8")
     src = Source(source_kind="local_folder", origin_uri=str(tree))
     db.add(src)
     db.commit()

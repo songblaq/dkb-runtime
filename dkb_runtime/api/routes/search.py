@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Query
-from sqlalchemy import text, select
+from sqlalchemy import select, text
 
 from dkb_runtime.api.deps import DbSession
 from dkb_runtime.models import CanonicalDirective, DirectiveEmbedding
@@ -66,9 +66,7 @@ def vector_search(db: DbSession, payload: VectorSearchRequest):
             DirectiveEmbedding.embedding_model,
             DirectiveEmbedding.embedding.cosine_distance(payload.embedding).label("distance"),
         )
-        .join(
-            DirectiveEmbedding, DirectiveEmbedding.directive_id == CanonicalDirective.directive_id
-        )
+        .join(DirectiveEmbedding, DirectiveEmbedding.directive_id == CanonicalDirective.directive_id)
         .order_by(text("distance ASC"))
         .limit(payload.limit)
     )

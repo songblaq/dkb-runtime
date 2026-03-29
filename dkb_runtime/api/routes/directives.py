@@ -19,12 +19,7 @@ def list_directives(
     offset: int = 0,
     status: str | None = None,
 ):
-    stmt = (
-        select(CanonicalDirective)
-        .order_by(CanonicalDirective.preferred_name.asc())
-        .limit(limit)
-        .offset(offset)
-    )
+    stmt = select(CanonicalDirective).order_by(CanonicalDirective.preferred_name.asc()).limit(limit).offset(offset)
     if status:
         stmt = stmt.where(CanonicalDirective.status == status)
     return db.scalars(stmt).all()

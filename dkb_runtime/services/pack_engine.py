@@ -28,10 +28,7 @@ class PackBuildResult:
 
 def _latest_verdict(db: Session, directive_id: UUID) -> Verdict | None:
     return db.scalars(
-        select(Verdict)
-        .where(Verdict.directive_id == directive_id)
-        .order_by(Verdict.evaluated_at.desc())
-        .limit(1)
+        select(Verdict).where(Verdict.directive_id == directive_id).order_by(Verdict.evaluated_at.desc()).limit(1)
     ).first()
 
 
@@ -112,10 +109,7 @@ def build_pack(db: Session, pack_id: UUID) -> PackBuildResult:
     chosen = candidates[:max_items]
     n = len(chosen)
     for rank, (d, u) in enumerate(chosen):
-        if n <= 1:
-            pw = 1.0
-        else:
-            pw = 1.0 - (rank / (n - 1)) * 0.5
+        pw = 1.0 if n <= 1 else 1.0 - (rank / (n - 1)) * 0.5
         db.add(
             PackItem(
                 pack_id=pack_id,

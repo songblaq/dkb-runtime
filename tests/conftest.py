@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from dkb_runtime.core.config import get_settings
 from dkb_runtime.core.paths import repo_root
@@ -50,9 +51,7 @@ def db(engine):
 
 @pytest.fixture
 def dimension_model(db) -> DimensionModel:
-    cfg = json.loads(
-        (repo_root() / "config" / "dimension_model_v0_1.json").read_text(encoding="utf-8")
-    )
+    cfg = json.loads((repo_root() / "config" / "dimension_model_v0_1.json").read_text(encoding="utf-8"))
     m = DimensionModel(
         model_key="test-dg-v0-1",
         version="0.1.0",
@@ -69,3 +68,9 @@ def dimension_model(db) -> DimensionModel:
 @pytest.fixture
 def fixtures_dir() -> Path:
     return Path(__file__).resolve().parent / "fixtures"
+
+
+@pytest.fixture
+def mock_db_session() -> MagicMock:
+    """Mock Session for unit tests that do not require PostgreSQL."""
+    return MagicMock(spec=Session)

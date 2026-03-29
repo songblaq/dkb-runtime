@@ -31,7 +31,5 @@ def test_log_audit_object_kinds(db):
         oid = uuid4()
         log_audit(db, kind, oid, "test", {})
         db.commit()
-        n = db.scalar(
-            select(func.count()).select_from(AuditEvent).where(AuditEvent.object_id == oid)
-        )
+        n = db.scalar(select(func.count()).select_from(AuditEvent).where(AuditEvent.object_id == oid))
         assert n == 1

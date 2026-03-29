@@ -90,7 +90,5 @@ def test_scoring_replaces_previous_scores(db, dimension_model):
     db.commit()
     score_directive(db, canon.directive_id, dimension_model.dimension_model_id)
     db.commit()
-    rows = db.scalars(
-        select(DimensionScore).where(DimensionScore.directive_id == canon.directive_id)
-    ).all()
+    rows = db.scalars(select(DimensionScore).where(DimensionScore.directive_id == canon.directive_id)).all()
     assert len(rows) == 34

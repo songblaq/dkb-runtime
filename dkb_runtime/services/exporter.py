@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
@@ -88,10 +88,7 @@ def export_claude_code(db: Session, pack_id: UUID, output_dir: Path) -> ExportRe
         skillness, agentness = _form_scores(db, d.directive_id, mid)
         name = _sanitize_filename(d.preferred_name)
         body = f"# {d.preferred_name}\n\n{d.normalized_summary or ''}\n"
-        if agentness >= skillness:
-            path = agents_dir / f"{name}.md"
-        else:
-            path = skills_dir / f"{name}.md"
+        path = agents_dir / f"{name}.md" if agentness >= skillness else skills_dir / f"{name}.md"
         path.write_text(body, encoding="utf-8")
         count += 1
         settings_items.append(
@@ -108,7 +105,7 @@ def export_claude_code(db: Session, pack_id: UUID, output_dir: Path) -> ExportRe
             {
                 "pack_key": pack.pack_key,
                 "pack_name": pack.pack_name,
-                "exported_at": datetime.now(timezone.utc).isoformat(),
+                "exported_at": datetime.now(UTC).isoformat(),
                 "items": settings_items,
             },
             indent=2,
@@ -171,7 +168,7 @@ def export_snapshot(db: Session, pack_id: UUID, output_dir: Path) -> ExportResul
 
     payload = {
         "version": "0.1.0",
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
         "pack": {
             "pack_id": str(pack.pack_id),
             "pack_key": pack.pack_key,
