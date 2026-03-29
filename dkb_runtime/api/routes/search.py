@@ -66,7 +66,9 @@ def vector_search(db: DbSession, payload: VectorSearchRequest):
             DirectiveEmbedding.embedding_model,
             DirectiveEmbedding.embedding.cosine_distance(payload.embedding).label("distance"),
         )
-        .join(DirectiveEmbedding, DirectiveEmbedding.directive_id == CanonicalDirective.directive_id)
+        .join(
+            DirectiveEmbedding, DirectiveEmbedding.directive_id == CanonicalDirective.directive_id
+        )
         .order_by(text("distance ASC"))
         .limit(payload.limit)
     )

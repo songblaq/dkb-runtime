@@ -50,7 +50,9 @@ def get_source(source_id: UUID, db: DbSession):
 
 
 @router.get("/{source_id}/snapshots", response_model=list[SnapshotRead])
-def list_snapshots(source_id: UUID, db: DbSession, limit: int = Query(default=50, le=200), offset: int = 0):
+def list_snapshots(
+    source_id: UUID, db: DbSession, limit: int = Query(default=50, le=200), offset: int = 0
+):
     stmt = (
         select(SourceSnapshot)
         .where(SourceSnapshot.source_id == source_id)
@@ -84,7 +86,9 @@ def create_snapshot(source_id: UUID, payload: SnapshotCreate, db: DbSession):
 
 
 @router.get("/snapshots/{snapshot_id}/raw-directives", response_model=list[RawDirectiveRead])
-def list_raw_directives(snapshot_id: UUID, db: DbSession, limit: int = Query(default=50, le=200), offset: int = 0):
+def list_raw_directives(
+    snapshot_id: UUID, db: DbSession, limit: int = Query(default=50, le=200), offset: int = 0
+):
     stmt = (
         select(RawDirective)
         .where(RawDirective.snapshot_id == snapshot_id)
@@ -95,7 +99,9 @@ def list_raw_directives(snapshot_id: UUID, db: DbSession, limit: int = Query(def
     return db.scalars(stmt).all()
 
 
-@router.post("/snapshots/{snapshot_id}/raw-directives", response_model=RawDirectiveRead, status_code=201)
+@router.post(
+    "/snapshots/{snapshot_id}/raw-directives", response_model=RawDirectiveRead, status_code=201
+)
 def create_raw_directive(snapshot_id: UUID, payload: RawDirectiveCreate, db: DbSession):
     snapshot = db.get(SourceSnapshot, snapshot_id)
     if not snapshot:

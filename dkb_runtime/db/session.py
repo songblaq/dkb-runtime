@@ -12,9 +12,11 @@ settings = get_settings()
 
 engine = create_engine(settings.database_url, future=True, pool_pre_ping=True)
 
+
 @event.listens_for(engine, "connect")
 def _register_vector(dbapi_connection, connection_record) -> None:  # pragma: no cover
     register_vector(dbapi_connection)
+
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)
 
