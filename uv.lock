@@ -83,6 +83,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "click" },
     { name = "fastapi" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary"] },
@@ -103,6 +104,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
+    { name = "click", specifier = ">=8.1" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "pgvector", specifier = ">=0.4" },
