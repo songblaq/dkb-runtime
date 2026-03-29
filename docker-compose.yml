@@ -21,12 +21,14 @@ services:
       - postgres
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-dkb}:${POSTGRES_PASSWORD:-dkb}@postgres:5432/${POSTGRES_DB:-dkb}
     ports:
       - "8000:8000"
     command: >
       sh -c "alembic upgrade head &&
              python scripts/load_seed.py &&
-             uvicorn dkb_runtime.main:app --host 0.0.0.0 --port 8000"
+             uvicorn dkb_runtime.api.app:app --host 0.0.0.0 --port 8000"
 
 volumes:
   postgres_data:
