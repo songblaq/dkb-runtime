@@ -36,9 +36,7 @@ class Verdict(Base):
         {"schema": "dkb"},
     )
 
-    verdict_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    verdict_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     directive_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("dkb.canonical_directive.directive_id", ondelete="CASCADE"),
@@ -55,15 +53,11 @@ class Verdict(Base):
     lifecycle_state: Mapped[str] = mapped_column(Text, nullable=False)
     recommendation_state: Mapped[str] = mapped_column(Text, nullable=False)
     verdict_reason: Mapped[str | None] = mapped_column(Text)
-    policy_trace: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, server_default=text(jsonb_default)
-    )
-    evaluated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    policy_trace: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text(jsonb_default))
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    directive: Mapped["CanonicalDirective"] = relationship(back_populates="verdicts")
-    dimension_model: Mapped["DimensionModel"] = relationship(back_populates="verdicts")
+    directive: Mapped[CanonicalDirective] = relationship(back_populates="verdicts")
+    dimension_model: Mapped[DimensionModel] = relationship(back_populates="verdicts")
 
 
 class Pack(Base):
@@ -77,38 +71,26 @@ class Pack(Base):
         {"schema": "dkb"},
     )
 
-    pack_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    pack_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     pack_key: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     pack_name: Mapped[str] = mapped_column(Text, nullable=False)
     pack_goal: Mapped[str] = mapped_column(Text, nullable=False)
     pack_type: Mapped[str] = mapped_column(Text, nullable=False)
-    selection_policy: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, server_default=text(jsonb_default)
-    )
+    selection_policy: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text(jsonb_default))
     status: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'draft'"))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    items: Mapped[list["PackItem"]] = relationship(
-        back_populates="pack", cascade="all, delete-orphan"
-    )
+    items: Mapped[list[PackItem]] = relationship(back_populates="pack", cascade="all, delete-orphan")
 
 
 class PackItem(Base):
     __tablename__ = "pack_item"
     __table_args__ = (
-        CheckConstraint(
-            "priority_weight >= 0 AND priority_weight <= 1", name="pack_item_priority_weight_check"
-        ),
+        CheckConstraint("priority_weight >= 0 AND priority_weight <= 1", name="pack_item_priority_weight_check"),
         {"schema": "dkb"},
     )
 
-    pack_item_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    pack_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     pack_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("dkb.pack.pack_id", ondelete="CASCADE"), nullable=False
     )
@@ -119,29 +101,23 @@ class PackItem(Base):
     )
     inclusion_reason: Mapped[str | None] = mapped_column(Text)
     priority_weight: Mapped[float | None] = mapped_column(server_default=text("0.500"))
-    role_fit: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, server_default=text(jsonb_default)
-    )
+    role_fit: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text(jsonb_default))
 
     pack: Mapped[Pack] = relationship(back_populates="items")
-    directive: Mapped["CanonicalDirective"] = relationship(back_populates="pack_items")
+    directive: Mapped[CanonicalDirective] = relationship(back_populates="pack_items")
 
 
 class AuditEvent(Base):
     __tablename__ = "audit_event"
     __table_args__ = ({"schema": "dkb"},)
 
-    audit_event_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    audit_event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     object_kind: Mapped[str] = mapped_column(Text, nullable=False)
     object_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     action: Mapped[str] = mapped_column(Text, nullable=False)
     actor: Mapped[str | None] = mapped_column(Text, server_default=text("'system'"))
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text(jsonb_default))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
 from dkb_runtime.models.directive import CanonicalDirective  # noqa: E402

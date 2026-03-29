@@ -106,9 +106,7 @@ def _score_dimension(
             s += 0.35
         if "agent" in type_blob:
             s += 0.35
-        sk, cf, ex = _score_keyword_presence(
-            c, ["agent", "multi-step", "orchestrate", "delegate", "planner"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["agent", "multi-step", "orchestrate", "delegate", "planner"])
         return _clamp01(s + sk * 0.25), cf, f"agentness: {ex}"
     if key == "workflowness":
         s = 0.15
@@ -116,14 +114,10 @@ def _score_dimension(
             s += 0.45
         if "workflow" in type_blob:
             s += 0.3
-        sk, cf, ex = _score_keyword_presence(
-            c, ["pipeline", "stage", "step 1", "workflow", "sequence"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["pipeline", "stage", "step 1", "workflow", "sequence"])
         return _clamp01(s + sk * 0.3), cf, f"workflowness: {ex}"
     if key == "commandness":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["cli", "command", "run ", "invoke", "terminal", "bash", "sh "]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["cli", "command", "run ", "invoke", "terminal", "bash", "sh "])
         return sk, cf, f"commandness: {ex}"
     if key == "pluginness":
         sk, cf, ex = _score_keyword_presence(
@@ -156,19 +150,13 @@ def _score_dimension(
         sk, cf, ex = _score_keyword_presence(c, ["step", "phase", "stage", "workflow", "sequence"])
         return sk, cf, f"multi_stepness: {ex}"
     if key == "tool_dependence":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["mcp", "api", "http", "tool", "external", "service", "database"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["mcp", "api", "http", "tool", "external", "service", "database"])
         return sk, cf, f"tool_dependence: {ex}"
     if key == "composability":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["input", "output", "interface", "compose", "chain", "reuse"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["input", "output", "interface", "compose", "chain", "reuse"])
         return sk, cf, f"composability: {ex}"
     if key == "reusability":
-        spec = _score_keyword_presence(
-            c, ["this repo", "our team", "internal only", "project-specific"]
-        )[0]
+        spec = _score_keyword_presence(c, ["this repo", "our team", "internal only", "project-specific"])[0]
         return _clamp01(1.0 - spec * 0.7), 0.5, "reusability: lower when project-specific cues"
 
     # --- governance ---
@@ -179,19 +167,13 @@ def _score_dimension(
         )
         return sk, cf, f"officialness: {ex}"
     if key == "legal_clarity":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["license", "mit", "apache", "bsd", "copyright", "terms"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["license", "mit", "apache", "bsd", "copyright", "terms"])
         return sk, cf, f"legal_clarity: {ex}"
     if key == "maintenance_health":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["changelog", "updated", "release", "version", "commit"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["changelog", "updated", "release", "version", "commit"])
         return sk, cf, f"maintenance_health: {ex}"
     if key == "install_verifiability":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["install", "npm ", "pip ", "docker", "setup", "quickstart"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["install", "npm ", "pip ", "docker", "setup", "quickstart"])
         return sk, cf, f"install_verifiability: {ex}"
     if key == "trustworthiness":
         o, oc, _ = _score_dimension(group, "officialness", content, path_blob, type_blob)
@@ -212,14 +194,10 @@ def _score_dimension(
         sk, cf, ex = _score_keyword_presence(c, ["referenced", "cited", "mentioned", "see also"])
         return sk, cf, f"mention_signal: {ex}"
     if key == "install_signal":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["download", "install count", "pypi", "npm downloads"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["download", "install count", "pypi", "npm downloads"])
         return sk * 0.6, cf * 0.55, f"install_signal (text proxy): {ex}"
     if key == "freshness":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["2024", "2025", "2026", "recent", "latest", "updated"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["2024", "2025", "2026", "recent", "latest", "updated"])
         return sk, cf, f"freshness: {ex}"
 
     # --- clarity ---
@@ -237,9 +215,7 @@ def _score_dimension(
             ex or "description_clarity",
         )
     if key == "io_clarity":
-        sk, cf, ex = _score_keyword_presence(
-            c, ["input", "output", "parameter", "argument", "returns", "schema"]
-        )
+        sk, cf, ex = _score_keyword_presence(c, ["input", "output", "parameter", "argument", "returns", "schema"])
         return sk, cf, f"io_clarity: {ex}"
     if key == "example_coverage":
         n = min(content.count("```"), 5) / 5.0
@@ -270,9 +246,7 @@ def score_directive(db: Session, directive_id: UUID, model_id: UUID) -> list[Dim
     results: list[DimensionScoreResult] = []
     for group_name, dims in groups:
         for dim_key in dims:
-            score, confidence, explanation = _score_dimension(
-                group_name, dim_key, content, path_blob, type_blob
-            )
+            score, confidence, explanation = _score_dimension(group_name, dim_key, content, path_blob, type_blob)
             row = DimensionScore(
                 directive_id=directive_id,
                 dimension_model_id=model_id,

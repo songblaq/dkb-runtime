@@ -18,9 +18,7 @@ def load_json(path: Path) -> dict:
 
 def upsert_dimension_model(session) -> None:
     payload = load_json(CONFIG_DIR / "dimension_model_v0_1.json")
-    existing = session.scalar(
-        select(DimensionModel).where(DimensionModel.model_key == payload["model_key"])
-    )
+    existing = session.scalar(select(DimensionModel).where(DimensionModel.model_key == payload["model_key"]))
     if existing:
         existing.version = payload["version"]
         existing.description = payload.get("description")

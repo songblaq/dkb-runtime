@@ -62,8 +62,6 @@ def test_extract_skill_and_agent_priority(db, tmp_path, fixtures_dir):
     assert "skill" in types
     assert "agent" in types
     skill = types["skill"]
-    rds = db.scalars(
-        select(RawDirective).where(RawDirective.raw_directive_id == skill.raw_directive_id)
-    ).one()
+    rds = db.scalars(select(RawDirective).where(RawDirective.raw_directive_id == skill.raw_directive_id)).one()
     assert rds.content_format == "markdown"
     assert skill.evidence_count >= 1

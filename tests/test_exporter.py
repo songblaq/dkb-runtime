@@ -7,9 +7,7 @@ from dkb_runtime.services.exporter import export_claude_code, export_skill_md, e
 
 
 def _pack_with_item(db, dimension_model) -> Pack:
-    c = CanonicalDirective(
-        preferred_name="My Agent", normalized_summary="Does agent things with tools"
-    )
+    c = CanonicalDirective(preferred_name="My Agent", normalized_summary="Does agent things with tools")
     db.add(c)
     db.commit()
     db.refresh(c)

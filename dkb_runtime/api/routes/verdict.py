@@ -18,10 +18,7 @@ def get_verdict(directive_id: UUID, db: DbSession):
     if db.get(CanonicalDirective, directive_id) is None:
         raise HTTPException(status_code=404, detail="Directive not found")
     v = db.scalars(
-        select(Verdict)
-        .where(Verdict.directive_id == directive_id)
-        .order_by(Verdict.evaluated_at.desc())
-        .limit(1)
+        select(Verdict).where(Verdict.directive_id == directive_id).order_by(Verdict.evaluated_at.desc()).limit(1)
     ).first()
     if v is None:
         raise HTTPException(status_code=404, detail="Verdict not found")
@@ -38,10 +35,7 @@ def trigger_evaluation(directive_id: UUID, db: DbSession):
         raise HTTPException(status_code=400, detail=str(e)) from e
     db.commit()
     v = db.scalars(
-        select(Verdict)
-        .where(Verdict.directive_id == directive_id)
-        .order_by(Verdict.evaluated_at.desc())
-        .limit(1)
+        select(Verdict).where(Verdict.directive_id == directive_id).order_by(Verdict.evaluated_at.desc()).limit(1)
     ).first()
     if v is None:
         raise HTTPException(status_code=500, detail="Verdict not persisted")

@@ -86,9 +86,7 @@ def test_canonicalizer_variant_relation(db):
     canonicalize(db, [r1.raw_directive_id, r2.raw_directive_id])
     db.commit()
 
-    rels = db.scalars(
-        select(DirectiveRelation).where(DirectiveRelation.relation_type == "variant_of")
-    ).all()
+    rels = db.scalars(select(DirectiveRelation).where(DirectiveRelation.relation_type == "variant_of")).all()
     assert len(rels) >= 1
 
 
