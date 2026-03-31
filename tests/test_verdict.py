@@ -75,7 +75,13 @@ def test_verdict_archived_lifecycle_deprecated(db, dimension_model):
 
 
 def test_verdict_default_has_reviewing_trust_when_scores_exist(db, dimension_model):
-    canon = _setup_directive(db, license_text="MIT", body="content")
+    # License text must be long enough for clear legal_state (>20 chars) so
+    # no_license_default_caution does not override trust_state to caution.
+    canon = _setup_directive(
+        db,
+        license_text="MIT License\nCopyright (c) 2024 Example Corp",
+        body="content",
+    )
     score_directive(db, canon.directive_id, dimension_model.dimension_model_id)
     db.commit()
     r = evaluate_directive(db, canon.directive_id)

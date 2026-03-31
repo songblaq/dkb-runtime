@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import uuid4
+
 from sqlalchemy import select
 
 from dkb_runtime.models import (
@@ -12,7 +14,10 @@ from dkb_runtime.services.pack_engine import build_pack
 
 
 def _canon_with_scores_and_verdict(db, dimension_model, *, trust: str, score_val: float = 0.9):
-    c = CanonicalDirective(preferred_name="P", normalized_summary="review and plan")
+    c = CanonicalDirective(
+        preferred_name=f"P-{uuid4().hex[:8]}",
+        normalized_summary="review and plan",
+    )
     db.add(c)
     db.commit()
     db.refresh(c)
