@@ -465,6 +465,79 @@ def cache_clear(directive_id: str | None) -> None:
         db.close()
 
 
+@cli.group()
+def concept() -> None:
+    """Concept layer: compare directives, cluster profiles, explain scores."""
+    pass
+
+
+@concept.command("compare")
+@click.argument("id1")
+@click.argument("id2")
+def concept_compare(id1: str, id2: str) -> None:
+    """Compare two directives (scores + embedding distance when available)."""
+    from uuid import UUID
+
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.services.cognitive_ops import compare_directives
+
+    db = SessionLocal()
+    try:
+        out = compare_directives(db, UUID(id1), UUID(id2))
+        click.echo(json.dumps(out, indent=2, default=str))
+    except ValueError as e:
+        click.echo(f"Error: {e}", err=True)
+        raise SystemExit(1) from e
+    finally:
+        db.close()
+
+
+@concept.command("cluster")
+@click.option("--k", default=5, type=int, help="Number of clusters")
+def concept_cluster(k: int) -> None:
+    """K-means cluster directives by DKB score vectors."""
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.services.cognitive_ops import cluster_directives
+
+    db = SessionLocal()
+    try:
+        out = cluster_directives(db, k=k)
+        click.echo(json.dumps(out, indent=2, default=str))
+    except ValueError as e:
+        click.echo(f"Error: {e}", err=True)
+        raise SystemExit(1) from e
+    finally:
+        db.close()
+
+
+@concept.command("explain")
+@click.argument("directive_id")
+def concept_explain(directive_id: str) -> None:
+    """Print template-based explanation of a directive's dimension scores."""
+    from uuid import UUID
+
+    from sqlalchemy import select
+
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.models import CanonicalDirective, DimensionModel
+    from dkb_runtime.services.cognitive_ops import explain_profile, get_directive_dimension_scores
+
+    db = SessionLocal()
+    try:
+        did = UUID(directive_id)
+        if db.get(CanonicalDirective, did) is None:
+            click.echo("Directive not found", err=True)
+            raise SystemExit(1)
+        dim_model = db.scalars(select(DimensionModel).where(DimensionModel.is_active.is_(True))).first()
+        if not dim_model:
+            click.echo("No active dimension model", err=True)
+            raise SystemExit(1)
+        smap = get_directive_dimension_scores(db, did, dim_model.dimension_model_id)
+        click.echo(explain_profile(smap))
+    finally:
+        db.close()
+
+
 @cache.command("stats")
 def cache_stats() -> None:
     """Show score cache hit/miss stats and DB entry counts."""

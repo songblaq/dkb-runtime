@@ -3,6 +3,7 @@ from dkb_runtime.models.cache import LLMUsageLog, ScoreCache
 from dkb_runtime.models.directive import CanonicalDirective, DirectiveRelation, RawToCanonicalMap
 from dkb_runtime.models.embedding import DirectiveEmbedding
 from dkb_runtime.models.scoring import DimensionModel, DimensionScore
+from dkb_runtime.models.semantic_state import DirectiveSemanticState
 from dkb_runtime.models.source import Evidence, RawDirective, Source, SourceSnapshot
 from dkb_runtime.models.verdict import AuditEvent, Pack, PackItem, Verdict
 
@@ -13,6 +14,7 @@ __all__ = [
     "DimensionModel",
     "DimensionScore",
     "DirectiveEmbedding",
+    "DirectiveSemanticState",
     "DirectiveRelation",
     "Evidence",
     "LLMUsageLog",
