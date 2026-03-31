@@ -3,14 +3,13 @@ from __future__ import annotations
 import uuid
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
-from dkb_runtime.api.middleware.auth import get_current_user
 from dkb_runtime.core.paths import repo_root
 from dkb_runtime.models import Pack
-from dkb_runtime.schemas.pack import PackCreate, PackRead
+from dkb_runtime.schemas.pack import PackBuildResponse, PackCreate, PackExportResponse, PackRead
 from dkb_runtime.services.exporter import export_claude_code, export_skill_md, export_snapshot
 from dkb_runtime.services.pack_engine import build_pack
 
@@ -22,7 +21,7 @@ def list_packs(db: DbSession):
     return db.scalars(select(Pack).order_by(Pack.created_at.desc())).all()
 
 
-@router.post("", response_model=PackRead, status_code=201, dependencies=[Depends(get_current_user)])
+@router.post("", response_model=PackRead, status_code=201)
 def create_pack(payload: PackCreate, db: DbSession):
     existing = db.scalars(select(Pack).where(Pack.pack_key == payload.pack_key).limit(1)).first()
     if existing:
@@ -49,7 +48,7 @@ def get_pack(pack_id: UUID, db: DbSession):
     return pack
 
 
-@router.delete("/{pack_id}", status_code=204, dependencies=[Depends(get_current_user)])
+@router.delete("/{pack_id}", status_code=204)
 def delete_pack(pack_id: UUID, db: DbSession):
     pack = db.get(Pack, pack_id)
     if not pack:
@@ -58,7 +57,7 @@ def delete_pack(pack_id: UUID, db: DbSession):
     db.commit()
 
 
-@router.post("/{pack_id}/build", status_code=200, dependencies=[Depends(get_current_user)])
+@router.post("/{pack_id}/build", status_code=200, response_model=PackBuildResponse)
 def trigger_build(pack_id: UUID, db: DbSession):
     if db.get(Pack, pack_id) is None:
         raise HTTPException(status_code=404, detail="Pack not found")
@@ -72,7 +71,7 @@ def trigger_build(pack_id: UUID, db: DbSession):
     }
 
 
-@router.post("/{pack_id}/export/{export_format}", dependencies=[Depends(get_current_user)])
+@router.post("/{pack_id}/export/{export_format}", response_model=PackExportResponse)
 def trigger_export(pack_id: UUID, export_format: str, db: DbSession):
     if db.get(Pack, pack_id) is None:
         raise HTTPException(status_code=404, detail="Pack not found")
