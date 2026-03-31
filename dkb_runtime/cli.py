@@ -285,6 +285,92 @@ def pack_export(pack_key: str, fmt: str, output: str) -> None:
         db.close()
 
 
+@cli.group()
+def embed() -> None:
+    """Embedding generation and similarity search."""
+    pass
+
+
+@embed.command("generate")
+@click.option("--all", "generate_all", is_flag=True, help="Generate embeddings for all canonical directives")
+@click.option(
+    "--model",
+    "model_name",
+    default="text-embedding-3-small",
+    help="Embedding model name (must match rows used for search)",
+)
+def embed_generate(generate_all: bool, model_name: str) -> None:
+    """Generate and store embeddings."""
+    from sqlalchemy import select
+
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.models import CanonicalDirective
+    from dkb_runtime.services.embedding import (
+        directive_text_for_embedding,
+        generate_embedding,
+        store_embedding,
+    )
+
+    if not generate_all:
+        click.echo("Use --all to generate embeddings for every canonical directive")
+        return
+
+    db = SessionLocal()
+    try:
+        directives = db.scalars(select(CanonicalDirective).order_by(CanonicalDirective.preferred_name)).all()
+        n = 0
+        for d in directives:
+            text_in = directive_text_for_embedding(db, d.directive_id)
+            if not text_in:
+                click.echo(f"  skip (no text): {d.directive_id}")
+                continue
+            vec = generate_embedding(text_in, model=model_name)
+            store_embedding(db, d.directive_id, vec, model_name)
+            n += 1
+            click.echo(f"  embedded: {d.preferred_name}")
+        db.commit()
+        click.echo(f"Done: {n} directive(s) embedded with {model_name}")
+    finally:
+        db.close()
+
+
+@embed.command("search")
+@click.argument("query_text", nargs=-1, required=True)
+@click.option("--limit", default=10, help="Max results")
+@click.option("--model", "model_name", default="text-embedding-3-small", help="Embedding model filter")
+def embed_search(query_text: tuple[str, ...], limit: int, model_name: str) -> None:
+    """Search similar directives by query text (embeds query, then pgvector ranking)."""
+    from sqlalchemy import select
+
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.models import CanonicalDirective
+    from dkb_runtime.services.embedding import find_similar, generate_embedding
+
+    q = " ".join(query_text).strip()
+    if not q:
+        click.echo("Provide query text")
+        return
+
+    db = SessionLocal()
+    try:
+        vec = generate_embedding(q, model=model_name)
+        pairs = find_similar(db, vec, limit=limit, model_name=model_name)
+        if not pairs:
+            click.echo("No matches (missing embeddings or empty index)")
+            return
+        ids = [p[0] for p in pairs]
+        dist = dict(pairs)
+        directives = db.scalars(select(CanonicalDirective).where(CanonicalDirective.directive_id.in_(ids))).all()
+        by_id = {d.directive_id: d for d in directives}
+        for did in ids:
+            if did not in by_id:
+                continue
+            d = by_id[did]
+            click.echo(f"  {dist[did]:.4f}  {d.preferred_name}  ({did})")
+    finally:
+        db.close()
+
+
 @cli.command()
 def serve() -> None:
     """Start the DKB API server."""
@@ -317,6 +403,83 @@ def status() -> None:
         click.echo(f"  Canonical Directives: {canonical}")
         click.echo(f"  Verdicts:             {verdicts}")
         click.echo(f"  Packs:                {packs}")
+    finally:
+        db.close()
+
+
+@cli.group()
+def cost() -> None:
+    """LLM usage and cost."""
+    pass
+
+
+@cost.command("summary")
+@click.option("--days", default=30, type=int, help="Rolling window in days")
+def cost_summary(days: int) -> None:
+    """Show LLM usage cost summary."""
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.services.cost_tracker import get_usage_summary
+
+    db = SessionLocal()
+    try:
+        s = get_usage_summary(db, days=days)
+        click.echo(f"LLM usage (last {s['days']} days)")
+        click.echo("=" * 40)
+        click.echo(f"  Total USD: {s['total_cost_usd']:.6f}")
+        click.echo("  By provider:")
+        for p, c in s["by_provider"].items():
+            click.echo(f"    {p}: {c:.6f}")
+        if not s["by_provider"]:
+            click.echo("    (none)")
+        click.echo("  By model:")
+        for m, c in s["by_model"].items():
+            click.echo(f"    {m}: {c:.6f}")
+        if not s["by_model"]:
+            click.echo("    (none)")
+    finally:
+        db.close()
+
+
+@cli.group()
+def cache() -> None:
+    """Score cache operations."""
+    pass
+
+
+@cache.command("clear")
+@click.option("--directive-id", default=None, help="Limit invalidation to one directive UUID")
+def cache_clear(directive_id: str | None) -> None:
+    """Clear score cache entries."""
+    from uuid import UUID
+
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.services.score_cache import invalidate_cache
+
+    db = SessionLocal()
+    try:
+        did = UUID(directive_id) if directive_id else None
+        n = invalidate_cache(db, directive_id=did)
+        db.commit()
+        click.echo(f"Cleared {n} score cache row(s).")
+    finally:
+        db.close()
+
+
+@cache.command("stats")
+def cache_stats() -> None:
+    """Show score cache hit/miss stats and DB entry counts."""
+    from dkb_runtime.db.session import SessionLocal
+    from dkb_runtime.services.score_cache import get_cache_stats, score_cache_entry_counts
+
+    db = SessionLocal()
+    try:
+        st = get_cache_stats()
+        counts = score_cache_entry_counts(db)
+        click.echo("Score cache stats")
+        click.echo("=" * 40)
+        click.echo(f"  Process lookups: {st['total_lookups']} (hits={st['hits']}, misses={st['misses']})")
+        click.echo(f"  Hit rate:        {st['hit_rate']:.4f}")
+        click.echo(f"  DB entries:      {counts['entries_total']} total, {counts['entries_active']} active (unexpired)")
     finally:
         db.close()
 

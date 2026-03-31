@@ -116,6 +116,7 @@ class DirectiveRelation(Base):
     )
 
 
-from dkb_runtime.models.scoring import DimensionScore, DirectiveEmbedding  # noqa: E402
+from dkb_runtime.models.embedding import DirectiveEmbedding  # noqa: E402
+from dkb_runtime.models.scoring import DimensionScore  # noqa: E402
 from dkb_runtime.models.source import RawDirective  # noqa: E402
 from dkb_runtime.models.verdict import PackItem, Verdict  # noqa: E402

@@ -63,7 +63,7 @@ def vector_search(db: DbSession, payload: VectorSearchRequest):
             CanonicalDirective.directive_id,
             CanonicalDirective.preferred_name,
             CanonicalDirective.normalized_summary,
-            DirectiveEmbedding.embedding_model,
+            DirectiveEmbedding.model_name.label("embedding_model"),
             DirectiveEmbedding.embedding.cosine_distance(payload.embedding).label("distance"),
         )
         .join(DirectiveEmbedding, DirectiveEmbedding.directive_id == CanonicalDirective.directive_id)
@@ -72,7 +72,7 @@ def vector_search(db: DbSession, payload: VectorSearchRequest):
     )
 
     if payload.embedding_model:
-        stmt = stmt.where(DirectiveEmbedding.embedding_model == payload.embedding_model)
+        stmt = stmt.where(DirectiveEmbedding.model_name == payload.embedding_model)
 
     rows = db.execute(stmt).all()
     return [
