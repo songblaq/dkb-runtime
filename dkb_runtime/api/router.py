@@ -2,7 +2,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter, FastAPI
 
-from dkb_runtime.api.routes import concept, directives, health, packs, scoring, search, similarity, sources, verdict
+from dkb_runtime.api.routes import (
+    auth,
+    concept,
+    directives,
+    health,
+    packs,
+    scoring,
+    search,
+    similarity,
+    sources,
+    verdict,
+)
 
 
 def register_dashboard_routes(app: FastAPI) -> None:
@@ -13,6 +24,7 @@ def register_dashboard_routes(app: FastAPI) -> None:
 
 
 api_router = APIRouter()
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(sources.router, prefix="/sources", tags=["sources"])
 api_router.include_router(similarity.router, prefix="/directives", tags=["similarity"])

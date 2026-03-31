@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.auth import get_current_user
 from dkb_runtime.models import CanonicalDirective
 from dkb_runtime.schemas.directive import CanonicalDirectiveCreate, CanonicalDirectiveRead
 
@@ -25,7 +26,7 @@ def list_directives(
     return db.scalars(stmt).all()
 
 
-@router.post("", response_model=CanonicalDirectiveRead, status_code=201)
+@router.post("", response_model=CanonicalDirectiveRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_directive(payload: CanonicalDirectiveCreate, db: DbSession):
     directive = CanonicalDirective(
         preferred_name=payload.preferred_name,

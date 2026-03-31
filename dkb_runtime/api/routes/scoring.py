@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.auth import get_current_user
+from dkb_runtime.api.middleware.rate_limit import limiter
 from dkb_runtime.models import CanonicalDirective, DimensionModel, DimensionScore
 from dkb_runtime.schemas.scoring import DimensionScoreRead
 from dkb_runtime.services.scoring import score_directive
@@ -30,8 +32,15 @@ def get_scores(directive_id: UUID, db: DbSession):
     return db.scalars(stmt).all()
 
 
-@router.post("/{directive_id}/score", status_code=201, response_model=list[DimensionScoreRead])
+@router.post(
+    "/{directive_id}/score",
+    status_code=201,
+    response_model=list[DimensionScoreRead],
+    dependencies=[Depends(get_current_user)],
+)
+@limiter.limit("10/minute")
 def trigger_scoring(
+    request: Request,
     directive_id: UUID,
     db: DbSession,
     model_id: Annotated[UUID | None, Query()] = None,

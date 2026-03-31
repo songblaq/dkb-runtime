@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     vector_dimensions: int = Field(default=1536, alias="VECTOR_DIMENSIONS")
     cors_origins: str = Field(default="", alias="CORS_ORIGINS")
 
+    dkb_jwt_secret: str = Field(default="", alias="DKB_JWT_SECRET")
+    dkb_jwt_algorithm: str = Field(default="HS256", alias="DKB_JWT_ALGORITHM")
+    dkb_jwt_expire_minutes: int = Field(default=30, alias="DKB_JWT_EXPIRE_MINUTES")
+    dkb_admin_user: str = Field(default="", alias="DKB_ADMIN_USER")
+    dkb_admin_password: str = Field(default="", alias="DKB_ADMIN_PASSWORD")
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
