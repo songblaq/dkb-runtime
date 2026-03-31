@@ -1,0 +1,21 @@
+name: Cross-repo CI notify
+on:
+  push:
+    branches: [master]
+
+jobs:
+  dispatch-downstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch ai-store-dkb
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_DISPATCH_TOKEN }}
+          repository: songblaq/ai-store-dkb
+          event-type: dkb-upstream-trigger
+      - name: Dispatch agent-prompt-dkb
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_DISPATCH_TOKEN }}
+          repository: songblaq/agent-prompt-dkb
+          event-type: dkb-upstream-trigger
