@@ -31,6 +31,7 @@ def test_export_compact_markdown_multiple_separated():
     out = export_compact_markdown([a, b])
     assert out.count("---") == 1
     assert "# A" in out and "# B" in out
+    assert "## scores" not in out
 
 
 def test_export_batch_markdown_header_and_pack_key():

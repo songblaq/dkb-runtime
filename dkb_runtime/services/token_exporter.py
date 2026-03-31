@@ -85,7 +85,7 @@ def _verdict_display(d: dict[str, Any]) -> tuple[str, str, str]:
 
 
 def _scores_section(flat: dict[str, float]) -> list[str]:
-    lines: list[str] = ["## scores"]
+    body: list[str] = []
     for group, dims in _GROUP_DIMS:
         parts: list[str] = []
         for dim in dims:
@@ -95,8 +95,10 @@ def _scores_section(flat: dict[str, float]) -> list[str]:
             parts.append(f"{label}={flat[dim]:.2f}")
         if parts:
             gtitle = group.capitalize()
-            lines.append(f"{gtitle}: " + " ".join(parts))
-    return lines
+            body.append(f"{gtitle}: " + " ".join(parts))
+    if not body:
+        return []
+    return ["## scores", *body]
 
 
 def _compact_block(d: dict[str, Any]) -> str:
