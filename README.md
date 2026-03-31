@@ -1,3 +1,5 @@
+![CI](https://github.com/songblaq/dkb-runtime/actions/workflows/ci.yml/badge.svg)
+
 # dkb-runtime
 
 DKB(Directive Knowledge Base) 명세를 구현한 **설치 가능한 Python 패키지**.
