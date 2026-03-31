@@ -45,3 +45,10 @@ class FTSSearchItem(BaseModel):
     name: str
     summary: str | None = None
     rank: float
+
+
+class SimilarityResultItem(BaseModel):
+    directive_id: UUID
+    preferred_name: str
+    normalized_summary: str | None = None
+    distance: float
