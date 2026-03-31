@@ -19,6 +19,7 @@ dependencies = [
   "pydantic>=2.8",
   "pydantic-settings>=2.4",
   "python-dotenv>=1.0",
+  "scikit-learn>=1.5",
   "sqlalchemy>=2.0",
   "uvicorn[standard]>=0.30"
 ]
@@ -30,7 +31,10 @@ dkb = "dkb_runtime.cli:cli"
 dev = [
   "httpx>=0.27",
   "pytest>=8.2",
-  "ruff>=0.6"
+  "pyyaml>=6.0",
+  "ruff>=0.6",
+  "scikit-learn>=1.5",
+  "tiktoken>=0.7"
 ]
 
 [tool.hatch.build.targets.wheel]
