@@ -11,8 +11,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from dkb_runtime.core.paths import repo_root
 from dkb_runtime.models import CanonicalDirective, DimensionModel, DimensionScore, RawToCanonicalMap
+from dkb_runtime.services.llm_client import LLMClient, get_llm_client
 
 _CONFIG_PATH = repo_root() / "config" / "dimension_model_v0_1.json"
+
+DEFAULT_HYBRID_FUSION: dict[str, float | str] = {
+    "rule_weight": 0.4,
+    "llm_weight": 0.6,
+    "fusion_config_id": "default-v1",
+}
 
 
 @dataclass
@@ -262,6 +269,77 @@ def score_directive(db: Session, directive_id: UUID, model_id: UUID) -> list[Dim
                 DimensionScoreResult(
                     dimension_key=dim_key,
                     score=_clamp01(score),
+                    confidence=_clamp01(confidence),
+                    explanation=explanation,
+                )
+            )
+    db.flush()
+    return results
+
+
+def hybrid_score_directive(
+    db: Session,
+    directive_id: UUID,
+    dim_model_id: UUID,
+    fusion_config: dict | None = None,
+    llm_client: LLMClient | None = None,
+) -> list[DimensionScoreResult]:
+    """Rule-based scores fused with per-group LLM scores: ``final = rule_w*rule + llm_w*llm``."""
+    cfg: dict = {**DEFAULT_HYBRID_FUSION, **(fusion_config or {})}
+    rule_w = float(cfg["rule_weight"])
+    llm_w = float(cfg["llm_weight"])
+    fusion_id = str(cfg.get("fusion_config_id", "default-v1"))
+
+    model = db.get(DimensionModel, dim_model_id)
+    if not model:
+        raise ValueError(f"Dimension model not found: {dim_model_id}")
+
+    client = llm_client if llm_client is not None else get_llm_client()
+    directive = _load_directive_for_scoring(db, directive_id)
+    content, path_blob, type_blob = _gather_context(directive)
+    groups = _load_dimension_groups()
+
+    db.execute(
+        delete(DimensionScore).where(
+            DimensionScore.directive_id == directive_id,
+            DimensionScore.dimension_model_id == dim_model_id,
+        )
+    )
+
+    results: list[DimensionScoreResult] = []
+    for group_name, dims in groups:
+        llm_scores = client.score_directive(content, list(dims))
+        for dim_key in dims:
+            rule_score, confidence, rule_explanation = _score_dimension(
+                group_name, dim_key, content, path_blob, type_blob
+            )
+            llm_score = _clamp01(float(llm_scores.get(dim_key, 0.5)))
+            final_score = _clamp01(rule_w * rule_score + llm_w * llm_score)
+            explanation = f"hybrid({fusion_id}): rule={rule_score:.3f}, llm={llm_score:.3f} — {rule_explanation}"
+            row = DimensionScore(
+                directive_id=directive_id,
+                dimension_model_id=dim_model_id,
+                dimension_group=group_name,
+                dimension_key=dim_key,
+                score=final_score,
+                confidence=_clamp01(confidence),
+                explanation=explanation,
+                features={
+                    "rule_based": True,
+                    "llm_scored": True,
+                    "version": "0.1",
+                    "fusion_config_id": fusion_id,
+                    "rule_weight": rule_w,
+                    "llm_weight": llm_w,
+                    "rule_score": rule_score,
+                    "llm_score": llm_score,
+                },
+            )
+            db.add(row)
+            results.append(
+                DimensionScoreResult(
+                    dimension_key=dim_key,
+                    score=final_score,
                     confidence=_clamp01(confidence),
                     explanation=explanation,
                 )
