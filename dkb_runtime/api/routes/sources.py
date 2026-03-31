@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.auth import get_current_user
 from dkb_runtime.models import RawDirective, Source, SourceSnapshot
 from dkb_runtime.schemas.source import (
     RawDirectiveCreate,
@@ -25,7 +26,7 @@ def list_sources(db: DbSession, limit: int = Query(default=50, le=200), offset: 
     return db.scalars(stmt).all()
 
 
-@router.post("", response_model=SourceRead, status_code=201)
+@router.post("", response_model=SourceRead, status_code=201, dependencies=[Depends(get_current_user)])
 def create_source(payload: SourceCreate, db: DbSession):
     source = Source(
         source_kind=payload.source_kind,
@@ -61,7 +62,12 @@ def list_snapshots(source_id: UUID, db: DbSession, limit: int = Query(default=50
     return db.scalars(stmt).all()
 
 
-@router.post("/{source_id}/snapshots", response_model=SnapshotRead, status_code=201)
+@router.post(
+    "/{source_id}/snapshots",
+    response_model=SnapshotRead,
+    status_code=201,
+    dependencies=[Depends(get_current_user)],
+)
 def create_snapshot(source_id: UUID, payload: SnapshotCreate, db: DbSession):
     source = db.get(Source, source_id)
     if not source:
@@ -95,7 +101,12 @@ def list_raw_directives(snapshot_id: UUID, db: DbSession, limit: int = Query(def
     return db.scalars(stmt).all()
 
 
-@router.post("/snapshots/{snapshot_id}/raw-directives", response_model=RawDirectiveRead, status_code=201)
+@router.post(
+    "/snapshots/{snapshot_id}/raw-directives",
+    response_model=RawDirectiveRead,
+    status_code=201,
+    dependencies=[Depends(get_current_user)],
+)
 def create_raw_directive(snapshot_id: UUID, payload: RawDirectiveCreate, db: DbSession):
     snapshot = db.get(SourceSnapshot, snapshot_id)
     if not snapshot:

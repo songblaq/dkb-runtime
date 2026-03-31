@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, text
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.auth import get_current_user
 from dkb_runtime.models import CanonicalDirective, DirectiveEmbedding
 from dkb_runtime.schemas.directive import FTSSearchItem, VectorSearchItem, VectorSearchRequest
 
@@ -56,7 +57,7 @@ def search_directives(
     return [FTSSearchItem(**row) for row in rows]
 
 
-@router.post("/vector", response_model=list[VectorSearchItem])
+@router.post("/vector", response_model=list[VectorSearchItem], dependencies=[Depends(get_current_user)])
 def vector_search(db: DbSession, payload: VectorSearchRequest):
     stmt = (
         select(

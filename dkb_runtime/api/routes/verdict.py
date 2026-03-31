@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.auth import get_current_user
 from dkb_runtime.models import CanonicalDirective, Verdict
 from dkb_runtime.schemas.verdict import VerdictRead
 from dkb_runtime.services.verdict import evaluate_directive
@@ -25,7 +26,12 @@ def get_verdict(directive_id: UUID, db: DbSession):
     return v
 
 
-@router.post("/{directive_id}/evaluate", status_code=201, response_model=VerdictRead)
+@router.post(
+    "/{directive_id}/evaluate",
+    status_code=201,
+    response_model=VerdictRead,
+    dependencies=[Depends(get_current_user)],
+)
 def trigger_evaluation(directive_id: UUID, db: DbSession):
     if db.get(CanonicalDirective, directive_id) is None:
         raise HTTPException(status_code=404, detail="Directive not found")

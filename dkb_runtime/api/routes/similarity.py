@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
+from dkb_runtime.api.middleware.rate_limit import limiter
 from dkb_runtime.models import CanonicalDirective
 from dkb_runtime.schemas.directive import SimilarityResultItem
 from dkb_runtime.services.embedding import (
@@ -40,7 +41,9 @@ def _enrich_similarity(
 
 
 @router.get("/similar", response_model=list[SimilarityResultItem])
+@limiter.limit("10/minute")
 def similar_by_text(
+    request: Request,
     db: DbSession,
     q: str = Query(min_length=1, description="Query text to embed and match"),
     limit: int = Query(default=10, ge=1, le=100),
