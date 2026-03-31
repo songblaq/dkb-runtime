@@ -182,7 +182,7 @@ def _render_dashboard_html(db: Session) -> str:
         <footer>
             <a href="/docs">API docs</a>
             ·
-            <a href="/api/v1/healthz">Health</a>
+            <a href="/api/v1/health">Health</a>
         </footer>
     </div>
 </body>

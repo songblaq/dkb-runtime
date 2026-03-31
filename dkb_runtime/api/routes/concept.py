@@ -8,6 +8,12 @@ from sqlalchemy import select
 
 from dkb_runtime.api.deps import DbSession
 from dkb_runtime.models import CanonicalDirective, DimensionModel
+from dkb_runtime.schemas.cognitive import (
+    ClusterGroupResponse,
+    CompareDirectivesResponse,
+    DirectiveExplainResponse,
+    RecommendSimilarItem,
+)
 from dkb_runtime.services.cognitive_ops import (
     cluster_directives,
     compare_directives,
@@ -19,7 +25,7 @@ from dkb_runtime.services.cognitive_ops import (
 router = APIRouter()
 
 
-@router.get("/compare")
+@router.get("/compare", response_model=CompareDirectivesResponse)
 def compare_directives_route(
     db: DbSession,
     id1: Annotated[UUID, Query(description="First directive UUID")],
@@ -35,7 +41,7 @@ def compare_directives_route(
         raise HTTPException(status_code=400, detail=detail) from e
 
 
-@router.get("/cluster")
+@router.get("/cluster", response_model=list[ClusterGroupResponse])
 def cluster_directives_route(
     db: DbSession,
     k: int = Query(default=5, ge=1, le=50, description="Number of clusters"),
@@ -47,7 +53,7 @@ def cluster_directives_route(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.get("/{directive_id}/recommend")
+@router.get("/{directive_id}/recommend", response_model=list[RecommendSimilarItem])
 def recommend_similar_route(
     directive_id: UUID,
     db: DbSession,
@@ -61,7 +67,7 @@ def recommend_similar_route(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.get("/{directive_id}/explain")
+@router.get("/{directive_id}/explain", response_model=DirectiveExplainResponse)
 def explain_directive_route(directive_id: UUID, db: DbSession):
     """Natural-language explanation of this directive's score profile (template-based, no LLM)."""
     if db.get(CanonicalDirective, directive_id) is None:
@@ -71,8 +77,8 @@ def explain_directive_route(directive_id: UUID, db: DbSession):
         raise HTTPException(status_code=400, detail="No active dimension model")
     smap = get_directive_dimension_scores(db, directive_id, dim_model.dimension_model_id)
     text_out = explain_profile(smap)
-    return {
-        "directive_id": str(directive_id),
-        "dimension_model_id": str(dim_model.dimension_model_id),
-        "explanation": text_out,
-    }
+    return DirectiveExplainResponse(
+        directive_id=str(directive_id),
+        dimension_model_id=str(dim_model.dimension_model_id),
+        explanation=text_out,
+    )
