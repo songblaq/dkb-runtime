@@ -1,0 +1,31 @@
+{
+  "encoding": "cl100k_base",
+  "baseline_format": "json",
+  "baseline_tokens": 1060,
+  "rows": [
+    {
+      "format": "json",
+      "tokens": 1060,
+      "vs_json_pct": 0.0,
+      "chars": 3188
+    },
+    {
+      "format": "yaml",
+      "tokens": 802,
+      "vs_json_pct": 24.3,
+      "chars": 2361
+    },
+    {
+      "format": "markdown",
+      "tokens": 426,
+      "vs_json_pct": 59.8,
+      "chars": 1145
+    },
+    {
+      "format": "compact_markdown",
+      "tokens": 271,
+      "vs_json_pct": 74.4,
+      "chars": 828
+    }
+  ]
+}
